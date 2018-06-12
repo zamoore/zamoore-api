@@ -1,25 +1,24 @@
 'use strict';
 
-const Sequelize = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  let { STRING } = DataTypes;
 
-const db = require('../db');
-const User = require('./user');
+  var Article = sequelize.define('Article', {
+    title: {
+      type: STRING,
+      allowNull: false
+    },
+    body: {
+      type: STRING
+    }
+  });
 
-const { STRING } = Sequelize;
+  Article.associate = (models) => {
+    Article.belongsTo(models.User, {
+      foreignKey: 'authorId',
+      as: 'author'
+    });
+  };
 
-const Article = db.define('Article', {
-  title: {
-    type: STRING,
-    allowNull: false
-  },
-  body: {
-    type: STRING
-  }
-});
-
-Article.belongsTo(User, {
-  as: 'author',
-  foreignKey: 'authorId'
-})
-
-module.exports = Article;
+  return Article;
+};

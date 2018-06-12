@@ -9,15 +9,10 @@ const server = Hapi.server({
   host: 'localhost'
 });
 
-server.route({
-  method: 'GET',
-  path: '/',
-  handler: async () => {
-    return 'Yo mama';
-  }
-});
-
 const init = async () => {
+  await server.register(require('./routes/users'));
+  await server.register(require('./routes/articles'));
+
   await server.start();
 
   console.log(`Server running at ${server.info.uri}`);

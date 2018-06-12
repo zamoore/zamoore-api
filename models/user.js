@@ -1,38 +1,37 @@
 'use strict';
 
-const Sequelize = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  let { ENUM, STRING } = DataTypes;
 
-const db = require('../db');
-const Article = require('./article');
+  let User = sequelize.define('User', {
+    role: {
+      type: ENUM,
+      allowNull: false,
+      values: ['basic', 'author', 'admin'],
+      defaultValue: 'basic'
+    },
+    email: {
+      type: STRING,
+      allowNull: false,
+      unique: true
+    },
+    password: {
+      type: STRING,
+      allowNull: false
+    },
+    username: {
+      type: STRING,
+      allowNull: false,
+      unique: true
+    }
+  });
 
-const { ENUM, STRING } = Sequelize;
+  User.associate = (models) => {
+    User.hasMany(models.Article, {
+      foreignKey: 'authorId',
+      as: 'articles'
+    });
+  };
 
-const User = db.define('User', {
-  role: {
-    type: ENUM,
-    allowNull: false,
-    values: ['basic', 'author', 'admin'],
-    defaultValue: 'basic'
-  },
-  email: {
-    type: STRING,
-    allowNull: false,
-    unique: true
-  },
-  password: {
-    type: STRING,
-    allowNull: false
-  },
-  username: {
-    type: STRING,
-    allowNull: false,
-    unique: true
-  }
-});
-
-User.hasMany(Article, {
-  as: 'articles',
-  foreignKey: 'authorId'
-});
-
-module.exports = User;
+  return User;
+};
