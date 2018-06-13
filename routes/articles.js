@@ -1,12 +1,15 @@
 'use strict';
 
+// External modules
 const Boom = require('boom');
 const Joi = require('joi');
 
+// Model imports
 const { Article, User } = require('../models');
 
 const rootPath = '/api/articles';
 
+// Routes plugin declaration
 exports.plugin = {
   name: 'articleRoutes',
   register: async (server, options) => {
@@ -31,7 +34,8 @@ exports.plugin = {
         });
 
         return newArticle;
-      }
+      },
+      config: { auth: 'admin' }
     });
   }
 };

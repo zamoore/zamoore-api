@@ -12,6 +12,8 @@ exports.configureAuth = async (server) => {
   await server.register(jwtPlugin);
 
   server.auth.strategy('admin', 'jwt', {
-    key: JWT_KEY
+    key: JWT_KEY,
+    validate,
+    verifyOptions: { algorithms: ['HS256'] }
   });
 }
