@@ -24,6 +24,22 @@ exports.plugin = {
     });
 
     server.route({
+      method: 'DELETE',
+      path: `${rootPath}/{articleId}`,
+      handler: async (request, h) => {
+        let article = await Article.findById(request.params.articleId);
+
+        if (!article) {
+          return Boom.notFound();
+        }
+
+        await article.destroy();
+
+        return h.response().code(202);
+      }
+    });
+
+    server.route({
       method: 'POST',
       path: rootPath,
       handler: async () => {

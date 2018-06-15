@@ -1,7 +1,9 @@
 'use strict';
 
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const Boom = require('boom');
+const Joi = require('joi');
 
 // Model imports
 const { User } = require('../models');
@@ -16,15 +18,29 @@ exports.plugin = {
       method: 'POST',
       path: rootPath,
       handler: async (request) => {
-        let payload = {
-          message: 'hello'
-        };
+        let { email, password } = request.payload;
+        let user = await User.findOne({ where: { email } });
 
-        return jwt.sign(payload, process.env.JWT_KEY, {
+        if (!user) {
+          return Boom.notFound()
+        }
+        if (!bcrypt.compareSync(password, user.password)) {
+          return Boom.unauthorized();
+        }
+
+        return jwt.sign({ role: user.role, username: user.username }, process.env.JWT_KEY, {
           algorithm: 'HS256'
         });
       },
-      config: { auth: false }
+      options: {
+        auth: false,
+        validate: {
+          payload: {
+            email: Joi.string().required().email(),
+            password: Joi.string().required()
+          }
+        }
+      }
     });
   }
 };
