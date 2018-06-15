@@ -1,5 +1,6 @@
 'use strict';
 
+// External modules
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Boom = require('boom');
@@ -22,7 +23,7 @@ exports.plugin = {
         let user = await User.findOne({ where: { email } });
 
         if (!user) {
-          return Boom.notFound()
+          return Boom.notFound();
         }
         if (!bcrypt.compareSync(password, user.password)) {
           return Boom.unauthorized();

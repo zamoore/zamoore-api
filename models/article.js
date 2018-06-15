@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
   Article.associate = (models) => {
     Article.belongsTo(models.User, {
       foreignKey: 'authorId',
-      as: 'author'
+      as: 'author',
+      onDelete: 'CASCADE'
     });
   };
 

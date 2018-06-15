@@ -1,9 +1,11 @@
 'use strict';
 
+// External modules
 const bcrypt = require('bcrypt');
 const Boom = require('boom');
 const Joi = require('joi');
 
+// Model imports
 const { User } = require('../models');
 
 const rootPath = '/api/users';
@@ -14,11 +16,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: rootPath,
-      handler: async () => {
-        let users = await User.findAll();
-
-        return users;
-      }
+      handler: async () => await User.findAll()
     });
 
     server.route({
@@ -40,14 +38,14 @@ exports.plugin = {
     server.route({
       method: 'POST',
       path: rootPath,
-      handler: async (request) => {
+      handler: async (request, h) => {
         let { email, password, role, username } = request.payload;
         let newUser;
 
         password = await bcrypt.hash(password, 10);
         newUser = await User.create({ email, password, role, username });
 
-        return newUser;
+        return h.response(newUser).code(201);
       }
     });
   }

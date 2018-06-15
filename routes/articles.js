@@ -16,11 +16,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: rootPath,
-      handler: async () => {
-        let articles = await Article.findAll();
-
-        return articles;
-      }
+      handler: async () => await Article.findAll()
     });
 
     server.route({
@@ -42,16 +38,29 @@ exports.plugin = {
     server.route({
       method: 'POST',
       path: rootPath,
-      handler: async () => {
-        let newArticle = await Article.create({
-          title: 'test',
-          body: 'This is a test',
-          authorId: 1
-        });
+      handler: async (request, h) => {
+        let { title, body, authorId } = request.payload;
 
-        return newArticle;
+        let author = await User.findById(authorId);
+
+        if (!author) {
+          return Boom.badData('the author id provided does not correspond to an exiting user')
+        }
+
+        let newArticle = await Article.create({ title, body, authorId });
+
+        return h.response(newArticle).code(201);
       },
-      config: { auth: 'admin' }
+      options: {
+        auth: 'admin',
+        validate: {
+          payload: {
+            title: Joi.string().required(),
+            body: Joi.string().optional(),
+            authorId: Joi.number().required()
+          }
+        }
+      }
     });
   }
 };
