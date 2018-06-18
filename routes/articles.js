@@ -44,7 +44,7 @@ exports.plugin = {
         let author = await User.findById(authorId);
 
         if (!author) {
-          return Boom.badData('the author id provided does not correspond to an exiting user')
+          return Boom.badData('the author id provided does not correspond to an existing user')
         }
 
         let newArticle = await Article.create({ title, body, authorId });
