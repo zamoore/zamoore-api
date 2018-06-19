@@ -29,7 +29,9 @@ exports.plugin = {
           return Boom.unauthorized();
         }
 
-        return jwt.sign({ role: user.role, username: user.username }, process.env.JWT_KEY, {
+        let { role, username, id } = user;
+
+        return jwt.sign({ role, username, id }, process.env.JWT_KEY, {
           algorithm: 'HS256'
         });
       },

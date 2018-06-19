@@ -16,7 +16,7 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: rootPath,
-      handler: async () => await Article.findAll()
+      handler: async (request) => await Article.findAll()
     });
 
     server.route({
@@ -24,14 +24,26 @@ exports.plugin = {
       path: `${rootPath}/{articleId}`,
       handler: async (request, h) => {
         let article = await Article.findById(request.params.articleId);
+        let { id: userId, role: userRole } = request.auth.credentials;
 
         if (!article) {
           return Boom.notFound();
+        }
+        if (article.authorId !== userId || userRole !== 'admin') {
+          return Boom.unauthorized('you are not authorized to modify this record');
         }
 
         await article.destroy();
 
         return h.response().code(202);
+      },
+      options: {
+        auth: 'auth',
+        validate: {
+          params: {
+            articleId: Joi.number().required()
+          }
+        }
       }
     });
 

@@ -23,7 +23,7 @@ exports.plugin = {
         password = await bcrypt.hash(password, 10);
         newUser = await User.create({ email, password, role, username });
 
-        return h.response(newUser).code(201);
+        return h.response().code(201);
       },
       options: {
         validate: {
@@ -40,14 +40,16 @@ exports.plugin = {
     server.route({
       method: 'GET',
       path: rootPath,
-      handler: async () => await User.findAll()
+      handler: async () => await User.findAll({ attributes: { exclude: ['password'] } })
     });
 
     server.route({
       method: 'GET',
       path: `${rootPath}/{userId}`,
       handler: async (request, h) => {
-        let user = await User.findById(request.params.userId);
+        let user = await User.findById(request.params.userId, {
+          attributes: { exclude: ['password'] }
+        });
         return user ? h.response(user).code(200) : Boom.notFound();
       },
       options: {
@@ -79,9 +81,10 @@ exports.plugin = {
 
         await user.save();
 
-        return h.response(user).code(200);
+        return h.response().code(204);
       },
       options: {
+        auth: 'self',
         validate: {
           params: {
             userId: Joi.number().required()
@@ -111,6 +114,7 @@ exports.plugin = {
         return h.response().code(202);
       },
       options: {
+        auth: 'self',
         validate: {
           params: {
             userId: Joi.number().required()
