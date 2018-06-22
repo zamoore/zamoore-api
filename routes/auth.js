@@ -5,9 +5,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const Boom = require('boom');
 const Joi = require('joi');
+const uuidv4 = require('uuid/v4');
 
 // Model imports
-const { User } = require('../models');
+const { User /*, Token */ } = require('../models');
 
 const rootPath = '/api/auth';
 
@@ -32,7 +33,8 @@ exports.plugin = {
         let { role, username, id } = user;
 
         return jwt.sign({ role, username, id }, process.env.JWT_KEY, {
-          algorithm: 'HS256'
+          algorithm: 'HS256',
+          jwtid: uuidv4()
         });
       },
       options: {
@@ -45,5 +47,16 @@ exports.plugin = {
         }
       }
     });
+
+    // server.route({
+    //   method: 'DELETE',
+    //   path: rootPath,
+    //   handler: async (request) => {
+    //
+    //   },
+    //   options: {
+    //     auth: 'auth'
+    //   }
+    // });
   }
 };

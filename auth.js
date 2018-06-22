@@ -15,6 +15,13 @@ exports.configureAuth = async (server) => {
     validate: (credentials) => ({ isValid: isAdmin(credentials), credentials })
   }, baseValidation));
 
+  server.auth.strategy('author', 'jwt', Object.assign({
+    validate: (credentials) => ({
+      isValid: isAdmin(credentials) || credentials.role === 'author',
+      credentials
+    })
+  }, baseValidation));
+
   server.auth.strategy('auth', 'jwt', Object.assign({
     validate: (credentials) => ({ isValid: true, credentials })
   }, baseValidation));

@@ -5,14 +5,68 @@ const bcrypt = require('bcrypt');
 const Boom = require('boom');
 const Joi = require('joi');
 
+// App modules
+const extractIncludes = require('../middleware/extract-includes');
+
 // Model imports
-const { User } = require('../models');
+const { Article, User } = require('../models');
 
 const rootPath = '/api/users';
+
+const includeMapping = {
+  articles: {
+    model: Article,
+    as: 'articles'
+  }
+};
 
 exports.plugin = {
   name: 'userRoutes',
   register: async (server, options) => {
+    server.route({
+      method: 'GET',
+      path: rootPath,
+      handler: async (request) => {
+        return await User.findAll({
+          include: request.pre.includeArray,
+          attributes: { exclude: ['password'] }
+        });
+      },
+      options: {
+        pre: [
+          {
+            method: extractIncludes(includeMapping),
+            assign: 'includeArray'
+          }
+        ]
+      }
+    });
+
+    server.route({
+      method: 'GET',
+      path: `${rootPath}/{userId}`,
+      handler: async (request, h) => {
+        let user = await User.findById(request.params.userId, {
+          include: request.pre.includeArray,
+          attributes: { exclude: ['password'] }
+        });
+        return user ? h.response(user).code(200) : Boom.notFound();
+      },
+      options: {
+        pre: [
+          {
+            method: extractIncludes(includeMapping),
+            assign: 'includeArray'
+          }
+        ],
+        validate: {
+          params: {
+            userId: Joi.number().required()
+          }
+        }
+      }
+    });
+
     server.route({
       method: 'POST',
       path: rootPath,
@@ -30,32 +84,8 @@ exports.plugin = {
           payload: {
             email: Joi.string().email().required(),
             password: Joi.string().min(6).required(),
-            role: Joi.string().valid(['basic', 'author', 'admin']).required(),
+            role: Joi.string().valid(['basic', 'author', 'admin']).optional(),
             username: Joi.string().required()
-          }
-        }
-      }
-    });
-
-    server.route({
-      method: 'GET',
-      path: rootPath,
-      handler: async () => await User.findAll({ attributes: { exclude: ['password'] } })
-    });
-
-    server.route({
-      method: 'GET',
-      path: `${rootPath}/{userId}`,
-      handler: async (request, h) => {
-        let user = await User.findById(request.params.userId, {
-          attributes: { exclude: ['password'] }
-        });
-        return user ? h.response(user).code(200) : Boom.notFound();
-      },
-      options: {
-        validate: {
-          params: {
-            userId: Joi.number().required()
           }
         }
       }
@@ -81,6 +111,10 @@ exports.plugin = {
 
         await user.save();
 
+        // TODO
+        // Invalidate current JWT
+        // Issue new JWT
+
         return h.response().code(204);
       },
       options: {
@@ -97,7 +131,7 @@ exports.plugin = {
           }
         }
       }
-    })
+    });
 
     server.route({
       method: 'DELETE',
@@ -108,6 +142,8 @@ exports.plugin = {
         if (!user) {
           return Boom.notFound();
         }
+
+        // TODO: Blacklist JWT
 
         await user.destroy();
 
