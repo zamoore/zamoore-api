@@ -11,7 +11,10 @@ const { configureAuth } = require('./auth');
 
 // Create the server
 const server = Hapi.server({
-  port : 3000,
+  routes: {
+    cors: true
+  },
+  port : 8080,
   host: 'localhost',
   debug: { request: ['error'] }
 });
