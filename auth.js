@@ -1,6 +1,10 @@
 'use strict';
 
+// External modules
 const { plugin: jwtPlugin } = require('hapi-auth-jwt2');
+
+// App modules
+const redis = require('./redis');
 
 const baseValidation = {
   key: process.env.JWT_KEY,
@@ -12,24 +16,47 @@ exports.configureAuth = async (server) => {
   await server.register(jwtPlugin);
 
   server.auth.strategy('admin', 'jwt', Object.assign({
-    validate: (credentials) => ({ isValid: isAdmin(credentials), credentials })
+    validate: async (credentials) => {
+      let revokedToken = await redis.getAsync(`token:${credentials.jti}`);
+
+      return {
+        isValid: !revokedToken && isAdmin(credentials),
+        credentials
+      };
+    }
   }, baseValidation));
 
   server.auth.strategy('author', 'jwt', Object.assign({
-    validate: (credentials) => ({
-      isValid: isAdmin(credentials) || credentials.role === 'author',
-      credentials
-    })
+    validate: async (credentials) => {
+      let revokedToken = await redis.getAsync(`token:${credentials.jti}`);
+
+      return {
+        isValid: !revokedToken && (isAdmin(credentials) || credentials.role === 'author'),
+        credentials
+      };
+    }
   }, baseValidation));
 
   server.auth.strategy('auth', 'jwt', Object.assign({
-    validate: (credentials) => ({ isValid: true, credentials })
+    validate: async (credentials) => {
+      let revokedToken = await redis.getAsync(`token:${credentials.jti}`);
+
+      return {
+        isValid: !revokedToken,
+        credentials
+      };
+    }
   }, baseValidation));
 
   server.auth.strategy('self', 'jwt', Object.assign({
-    validate: (credentials, req) => ({
-      isValid: isAdmin(credentials) || credentials.id === parseInt(req.params.userId, 10),
-      credentials
-    })
+    validate: async (credentials, req) => {
+      let revokedToken = await redis.getAsync(`token:${credentials.jti}`);
+      let isUser = credentials.id === parseInt(req.params.userId, 10);
+
+      return {
+        isValid: !revokedToken && (isAdmin(credentials) || isUser),
+        credentials
+      };
+    }
   }, baseValidation));
 }

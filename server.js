@@ -9,13 +9,15 @@ const Hapi = require('hapi');
 // Internal modules
 const { configureAuth } = require('./auth');
 
+// Initialize redis client
+require('./redis');
+
 // Create the server
 const server = Hapi.server({
   routes: {
     cors: true
   },
-  port : 8080,
-  host: 'localhost',
+  port: process.env.PORT || 8080,
   debug: { request: ['error'] }
 });
 
@@ -40,7 +42,7 @@ const init = async () => {
 // General error handling
 process.on('unhandledRejection', (err) => {
   console.log(err);
-  process.exit(1);
+  process.exit(1)
 });
 
 init();

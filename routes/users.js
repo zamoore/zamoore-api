@@ -71,6 +71,7 @@ exports.plugin = {
       method: 'POST',
       path: rootPath,
       handler: async (request, h) => {
+        // TODO: Restrict admin role
         let { email, password, role, username } = request.payload;
         let newUser;
 
@@ -95,6 +96,7 @@ exports.plugin = {
       method: 'PATCH',
       path: `${rootPath}/{userId}`,
       handler: async (request, h) => {
+        // TODO: Restrict admin role
         let user = await User.findById(request.params.userId);
 
         if (!user) {

@@ -7,8 +7,11 @@ const Boom = require('boom');
 const Joi = require('joi');
 const uuidv4 = require('uuid/v4');
 
+// App modules
+const redis = require('../redis');
+
 // Model imports
-const { User /*, Token */ } = require('../models');
+const { User } = require('../models');
 
 const rootPath = '/api/auth';
 
@@ -34,6 +37,7 @@ exports.plugin = {
 
         return jwt.sign({ role, username, id }, process.env.JWT_KEY, {
           algorithm: 'HS256',
+          expiresIn: '6h',
           jwtid: uuidv4()
         });
       },
@@ -48,15 +52,38 @@ exports.plugin = {
       }
     });
 
-    // server.route({
-    //   method: 'DELETE',
-    //   path: rootPath,
-    //   handler: async (request) => {
-    //
-    //   },
-    //   options: {
-    //     auth: 'auth'
-    //   }
-    // });
+    server.route({
+      method: 'DELETE',
+      path: rootPath,
+      handler: async (request, h) => {
+        let { jti, exp } = request.auth.credentials;
+
+        await redis.set(`token:${jti}`, exp);
+
+        return h.response().code(200);
+      },
+      options: {
+        auth: 'auth'
+      }
+    });
+
+    server.route({
+      method: 'POST',
+      path: '/api/reauth',
+      handler: async (request) => {
+        let { exp, id, jti, role, username } = request.auth.credentials;
+
+        await redis.set(`token:${jti}`, exp);
+
+        return jwt.sign({ id, role, username }, process.env.JWT_KEY, {
+          algorithm: 'HS256',
+          expiresIn: '6h',
+          jwtid: uuidv4()
+        });
+      },
+      options: {
+        auth: 'auth'
+      }
+    });
   }
 };

@@ -28,7 +28,14 @@ exports.plugin = {
       method: 'GET',
       path: rootPath,
       handler: async (request) => {
-        return await Article.findAll({ include: request.pre.includeArray });
+        let page = request.query.page || 1;
+        let perPage = request.query.perPage || 10;
+
+        return await Article.findAll({
+          include: request.pre.includeArray,
+          limit: perPage,
+          offset: perPage * (page - 1)
+        });
       },
       options: {
         pre: [
@@ -36,7 +43,14 @@ exports.plugin = {
             method: extractIncludes(includeMapping),
             assign: 'includeArray'
           }
-        ]
+        ],
+        validate: {
+          query: {
+            include: Joi.string().optional(),
+            perPage: Joi.number().min(1).optional(),
+            page: Joi.number().min(1).optional()
+          }
+        }
       }
     });
 
