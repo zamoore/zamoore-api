@@ -9,11 +9,22 @@ const config = require('../config/db')[env];
 const db = {};
 
 let { database, username, password, host, dialect } = config;
+let sequelize;
 
-let sequelize = new Sequelize(database, username, password, {
-  host,
-  dialect
-});
+if (env === 'production') {
+  sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect:  'postgres',
+    protocol: 'postgres',
+    port:     match[4],
+    host:     match[3],
+    logging:  true
+  });
+} else {
+  sequelize = new Sequelize(database, username, password, {
+    host,
+    dialect
+  });
+}
 
 fs.readdirSync(__dirname).filter((file) => {
   return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
