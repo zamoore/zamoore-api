@@ -10,5 +10,5 @@ services:
     ports:
       - "5432:5432"
     environment:
-      - POSTGRES_DB=zamoore_dev
-      - POSTGRES_USER=admin
+      - DATABASE_NAME=zamoore_dev
+      - DATABASE_USER=admin
