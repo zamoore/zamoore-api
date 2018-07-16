@@ -3,6 +3,8 @@
 // Environment configuration
 require('dotenv').config();
 
+console.log(process.env);
+
 // External modules
 const Hapi = require('hapi');
 
