@@ -58,7 +58,7 @@ exports.plugin = {
       handler: async (request, h) => {
         let { jti, exp } = request.auth.credentials;
 
-        await redis.set(`token:${jti}`, exp);
+        redis.set(`token:${jti}`, exp);
 
         return h.response().code(200);
       },
@@ -73,7 +73,7 @@ exports.plugin = {
       handler: async (request) => {
         let { exp, id, jti, role, username } = request.auth.credentials;
 
-        await redis.set(`token:${jti}`, exp);
+        redis.set(`token:${jti}`, exp);
 
         return jwt.sign({ id, role, username }, process.env.JWT_KEY, {
           algorithm: 'HS256',

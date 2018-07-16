@@ -16,6 +16,7 @@
     "hapi-auth-jwt2": "^8.1.0",
     "joi": "^13.3.0",
     "jsonwebtoken": "^8.2.2",
+    "lodash": "^4.17.10",
     "pg": "^7.4.3",
     "pg-hstore": "^2.3.2",
     "redis": "^2.8.0",

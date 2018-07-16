@@ -1,12 +1,14 @@
 'use strict';
 
 // External modules
+const _ = require('lodash');
 const bcrypt = require('bcrypt');
 const Boom = require('boom');
 const Joi = require('joi');
 
 // App modules
 const extractIncludes = require('../middleware/extract-includes');
+const redis = require('../redis');
 
 // Model imports
 const { Article, User } = require('../models');
@@ -71,9 +73,12 @@ exports.plugin = {
       method: 'POST',
       path: rootPath,
       handler: async (request, h) => {
-        // TODO: Restrict admin role
         let { email, password, role, username } = request.payload;
         let newUser;
+
+        if (['admin', 'author'].includes(role) && _.get(request, 'auth.credentials.role') !== 'admin') {
+          return Boom.forbidden();
+        }
 
         password = await bcrypt.hash(password, 10);
         newUser = await User.create({ email, password, role, username });
@@ -96,11 +101,14 @@ exports.plugin = {
       method: 'PATCH',
       path: `${rootPath}/{userId}`,
       handler: async (request, h) => {
-        // TODO: Restrict admin role
         let user = await User.findById(request.params.userId);
 
         if (!user) {
           return Boom.notFound();
+        }
+
+        if (['admin', 'author'].includes(request.payload.role) && _.get(request, 'auth.credentials.role') !== 'admin') {
+          return Boom.forbidden();
         }
 
         Object.keys(request.payload).forEach((attr) => {
@@ -113,9 +121,7 @@ exports.plugin = {
 
         await user.save();
 
-        // TODO
-        // Invalidate current JWT
-        // Issue new JWT
+        redis.set(`token:${request.auth.credentials.jti}`, request.auth.credentials.exp);
 
         return h.response().code(204);
       },
@@ -145,9 +151,9 @@ exports.plugin = {
           return Boom.notFound();
         }
 
-        // TODO: Blacklist JWT
-
         await user.destroy();
+
+        redis.set(`token:${request.auth.credentials.jti}`, request.auth.credentials.exp);
 
         return h.response().code(202);
       },
