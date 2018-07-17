@@ -76,9 +76,9 @@ exports.plugin = {
         let { email, password, role, username } = request.payload;
         let newUser;
 
-        // if (['admin', 'author'].includes(role) && _.get(request, 'auth.credentials.role') !== 'admin') {
-        //   return Boom.forbidden();
-        // }
+        if (['admin', 'author'].includes(role) && _.get(request, 'auth.credentials.role') !== 'admin') {
+          return Boom.forbidden();
+        }
 
         password = await bcrypt.hash(password, 10);
         newUser = await User.create({ email, password, role, username });
