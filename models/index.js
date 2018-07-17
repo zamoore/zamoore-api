@@ -8,22 +8,10 @@ const env = process.env.NODE_ENV || 'development';
 const config = require('../config/db')[env];
 const db = {};
 
-let { database, username, password, host, dialect } = config;
-let sequelize;
-
-if (env === 'production') {
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
-    dialect:  'postgres',
-    protocol: 'postgres',
-    port:     match[4],
-    host:     match[3],
-    logging:  true
-  });
+if (config.use_env_variable) {
+  let sequelize = new Sequelize(process.env[config.use_env_variable], config);
 } else {
-  sequelize = new Sequelize(database, username, password, {
-    host,
-    dialect
-  });
+  let sequelize = new Sequelize(config.database, config.username, config.password, config);
 }
 
 fs.readdirSync(__dirname).filter((file) => {
