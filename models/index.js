@@ -8,11 +8,9 @@ const env = process.env.NODE_ENV || 'development';
 const config = require('../config/db')[env];
 const db = {};
 
-if (config.use_env_variable) {
-  let sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  let sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+let sequelize = config.use_env_variable
+  ? new Sequelize(process.env[config.use_env_variable], config)
+  : new Sequelize(config.database, config.username, config.password, config);
 
 fs.readdirSync(__dirname).filter((file) => {
   return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
