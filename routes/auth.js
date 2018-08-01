@@ -26,11 +26,8 @@ exports.plugin = {
         let { email, password } = request.payload;
         let user = await User.findOne({ where: { email } });
 
-        if (!user) {
-          return Boom.notFound();
-        }
-        if (!bcrypt.compareSync(password, user.password)) {
-          return Boom.unauthorized();
+        if (!user || !bcrypt.compareSync(password, user.password)) {
+          return Boom.unauthorized('invalid email or password');
         }
 
         let { role, username, id } = user;
@@ -71,9 +68,17 @@ exports.plugin = {
       method: 'POST',
       path: '/api/reauth',
       handler: async (request) => {
-        let { exp, id, jti, role, username } = request.auth.credentials;
+        let { exp, id: userId, jti } = request.auth.credentials;
 
         redis.set(`token:${jti}`, exp);
+
+        let user = await User.findById(userId);
+
+        if (!user) {
+          return Boom.unauthorized('unable to provide new token');
+        }
+
+        let { id, role, username } = user;
 
         return jwt.sign({ id, role, username }, process.env.JWT_KEY, {
           algorithm: 'HS256',

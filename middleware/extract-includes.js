@@ -22,7 +22,7 @@ module.exports = (mapping) => {
     }, []);
 
     if (includeArray.length === 0) {
-      throw Boom.badRequest();
+      throw Boom.badRequest('invalid include options');
     }
 
     return includeArray;
