@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = (sequelize, DataTypes) => {
-  let { STRING } = DataTypes;
+  let { STRING, TEXT } = DataTypes;
 
   var Article = sequelize.define('Article', {
     title: {
@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     body: {
-      type: STRING
+      type: TEXT
     }
   });
 
