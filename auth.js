@@ -10,9 +10,6 @@ const baseValidation = {
   key: process.env.JWT_KEY,
   verifyOptions: { algorithms: ['HS256'] },
   errorFunc(errorContext) {
-    errorContext.errorType = 'unauthorized';
-    errorContext.message = 'token is invalid for that operation';
-
     return errorContext;
   }
 };
