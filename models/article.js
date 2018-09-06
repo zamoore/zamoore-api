@@ -8,9 +8,9 @@ module.exports = (sequelize, DataTypes) => {
       type: STRING,
       allowNull: false
     },
-    body: {
-      type: TEXT
-    }
+    body: { type: TEXT },
+    category: { type: STRING },
+    preview: { type: TEXT }
   });
 
   Article.associate = (models) => {

@@ -87,7 +87,7 @@ exports.plugin = {
       method: 'POST',
       path: rootPath,
       handler: async (request, h) => {
-        let { title, body, authorId } = request.payload;
+        let { title, body, authorId, category, preview } = request.payload;
 
         let author = await User.findById(authorId);
 
@@ -95,7 +95,13 @@ exports.plugin = {
           throw Boom.badData('the author id provided does not correspond to an existing user')
         }
 
-        let newArticle = await Article.create({ title, body, authorId });
+        let newArticle = await Article.create({
+          title,
+          body,
+          authorId,
+          category,
+          preview
+        });
 
         return h.response(newArticle).code(201);
       },
@@ -105,7 +111,9 @@ exports.plugin = {
           payload: {
             title: Joi.string().required(),
             body: Joi.string().optional(),
-            authorId: Joi.number().required()
+            authorId: Joi.number().required(),
+            category: Joi.string().optional(),
+            preview: Joi.string().optional()
           }
         }
       }
@@ -155,7 +163,9 @@ exports.plugin = {
           payload: {
             title: Joi.string().optional(),
             body: Joi.string().optional(),
-            authorId: Joi.number().optional()
+            authorId: Joi.number().optional(),
+            category: Joi.string().optional(),
+            preview: Joi.string().optional()
           }
         }
       }
